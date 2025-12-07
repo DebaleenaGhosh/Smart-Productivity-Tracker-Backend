@@ -1,0 +1,41 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: Auth-Server
+#  cloud:
+#    gateway:
+#      server:
+#        webflux:
+#          routes:
+#            - id: user-service
+#              uri: http://localhost:8081
+#              predicates:
+#                - Path=/user/**
+#            - id: task-service
+#              uri: http://localhost:8082
+#              predicates:
+#                - Path=/task/**
+  datasource:
+    url: jdbc:postgresql://localhost:5432/productivity_db
+    username: postgres
+    password: manager
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+eureka:
+  instance:
+    hostname: localhost   # ? force it to register as localhost
+    prefer-ip-address: true
+jwt:
+  secret: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
+  expiration-ms: 3600000

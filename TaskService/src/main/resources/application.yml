@@ -1,0 +1,29 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: Task-Service
+  main:
+    web:
+      application:
+        type: reactive
+  datasource:
+    url: jdbc:postgresql://localhost:5432/productivity_db
+    username: postgres
+    password: manager
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+eureka:
+  instance:
+    hostname: localhost   # 👈 force it to register as localhost
+    prefer-ip-address: true
