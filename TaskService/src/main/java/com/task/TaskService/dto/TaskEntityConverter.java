@@ -13,6 +13,7 @@ public class TaskEntityConverter
         taskDto.setUserId(task.getUserId());
         taskDto.setDescription(task.getDescription());
         taskDto.setTitle(task.getTitle());
+        taskDto.setPriority(task.getPriority());
         taskDto.setStatus(String.valueOf(task.getStatus()));
         taskDto.setDueDate(task.getDueDate());
         taskDto.setLastSynced(task.getLastSynced());
@@ -26,6 +27,7 @@ public class TaskEntityConverter
         task.setUserId(taskDto.getUserId());
         task.setDescription(taskDto.getDescription());
         task.setTitle(taskDto.getTitle());
+        task.setPriority(taskDto.getPriority());
         task.setStatus(Task.Status.valueOf(taskDto.getStatus()));
         task.setDueDate(taskDto.getDueDate());
         task.setLastSynced(taskDto.getLastSynced());

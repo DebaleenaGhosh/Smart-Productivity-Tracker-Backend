@@ -13,6 +13,7 @@ public class TaskDto
     private String title;
     private String description;
     private LocalDate dueDate;
+    private Integer priority;
     private String status;
     private LocalDate lastSynced;
 
@@ -33,6 +34,11 @@ public class TaskDto
 
     public TaskDto setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+        return this;
+    }
+
+    public TaskDto setPriority(Integer priority) {
+        this.priority = priority;
         return this;
     }
 

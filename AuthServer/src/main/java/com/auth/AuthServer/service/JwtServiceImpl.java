@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import com.auth.AuthServer.entity.AuthUser;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
@@ -57,7 +58,7 @@ public class JwtServiceImpl implements JwtService
     private Claims extractAllClaims(String token)
     {
         return Jwts.parser()
-                .verifyWith((SecretKey) getSigningKey())
+                .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -79,24 +80,20 @@ public class JwtServiceImpl implements JwtService
     @Override
     public boolean isTokenValid(String token, UserDetails userDetails)
     {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        try
+        {
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        }
+        catch (JwtException | IllegalArgumentException e)
+        {
+            return false;
+        }
     }
-//    public boolean isTokenValid(String token)
-//    {
-//        try
-//        {
-//            Jwts.parser()
-//                    .verifyWith((SecretKey) getSigningKey())
-//                    .build()
-//                    .parseSignedClaims(token);
-//            return true;
-//        }
-//        catch (JwtException | IllegalArgumentException e)
-//        {
-//            return false;
-//        }
-//    }
 
 //    @Override
 //    public String extractUsername(String token)
@@ -107,10 +104,5 @@ public class JwtServiceImpl implements JwtService
 //                .parseSignedClaims(token)
 //                .getPayload();
 //        return claims.getSubject();
-//    }
-
-//    public long getExpirationSeconds()
-//    {
-//        return expirationMs / 1000;
 //    }
 }
