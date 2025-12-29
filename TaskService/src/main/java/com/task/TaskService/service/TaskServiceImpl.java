@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,23 +35,25 @@ public class TaskServiceImpl implements TaskService
             }
             TaskDto taskDto = new TaskDto();
             taskDto.setUserId(userId)
-                .setTitle(taskCreationRequest.getTitle())
-                .setDescription(taskCreationRequest.getDescription())
-                .setDueDate(taskCreationRequest.getDueDate())
-                .setStatus("PENDING")
-                .setLastSynced(LocalDate.now());
+                    .setTitle(taskCreationRequest.getTitle())
+                    .setDescription(taskCreationRequest.getDescription())
+                    .setDueDate(taskCreationRequest.getDueDate())
+                    .setPriority(taskCreationRequest.getPriority())
+                    .setStatus("PENDING")
+                    .setLastSynced(LocalDate.now());
 
             Task savedTask = taskRepository.save(converter.convertDtoToEntity(taskDto));
             /*Publishing the task event after successful save*/
             publisher.publishTaskCreated(converter.convertEntityToDto(savedTask));
 
             taskServiceResponse.setTitle(taskDto.getTitle())
-                            .setDescription(taskDto.getDescription())
-                            .setStatus(taskDto.getStatus())
-                            .setDueDate(taskDto.getDueDate())
-                            .setLastSynced(taskDto.getLastSynced())
-                            .setHttpStatus(HttpStatus.CREATED)
-                            .setHttpMessage("Task created successfully");
+                    .setDescription(taskDto.getDescription())
+                    .setPriority(taskDto.getPriority())
+                    .setStatus(taskDto.getStatus())
+                    .setDueDate(taskDto.getDueDate())
+                    .setLastSynced(taskDto.getLastSynced())
+                    .setHttpStatus(HttpStatus.CREATED)
+                    .setHttpMessage("Task created successfully");
         }
         catch (IllegalArgumentException exception)
         {
@@ -98,6 +101,7 @@ public class TaskServiceImpl implements TaskService
             }
             existingTask.setTitle(taskServiceRequest.getTitle());
             existingTask.setDescription(taskServiceRequest.getDescription());
+            existingTask.setPriority(taskServiceRequest.getPriority());
             existingTask.setDueDate(taskServiceRequest.getDueDate());
             existingTask.setStatus(Task.Status.valueOf(taskServiceRequest.getStatus()));
             existingTask.setLastSynced(LocalDate.now());
@@ -108,6 +112,7 @@ public class TaskServiceImpl implements TaskService
 
             taskServiceResponse.setTitle(existingTask.getTitle())
                     .setDescription(existingTask.getDescription())
+                    .setPriority(existingTask.getPriority())
                     .setStatus(String.valueOf(existingTask.getStatus()))
                     .setDueDate(existingTask.getDueDate())
                     .setLastSynced(existingTask.getLastSynced())
@@ -141,6 +146,7 @@ public class TaskServiceImpl implements TaskService
                 .map(task -> new TaskServiceResponse(
                         task.getTitle(),
                         task.getDescription(),
+                        task.getPriority(),
                         String.valueOf(task.getStatus()),
                         task.getDueDate(),
                         task.getLastSynced(),
@@ -157,6 +163,7 @@ public class TaskServiceImpl implements TaskService
             Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task Not found"));
             taskServiceResponse.setTitle(task.getTitle())
                     .setDescription(task.getDescription())
+                    .setPriority(task.getPriority())
                     .setStatus(String.valueOf(task.getStatus()))
                     .setDueDate(task.getDueDate())
                     .setLastSynced(task.getLastSynced())
@@ -183,11 +190,12 @@ public class TaskServiceImpl implements TaskService
             // Create a default task for the user
             TaskDto defaultTask = new TaskDto();
             defaultTask.setUserId(userId)
-                .setTitle("Let's get started by adding a new task")
-                .setDescription("This is your first task. Get started!")
-                .setDueDate(LocalDate.now())
-                .setStatus("PENDING")
-                .setLastSynced(LocalDate.now());
+                    .setTitle("Let's get started by adding a new task")
+                    .setDescription("This is your first task. Get started!")
+                    .setPriority(1)
+                    .setDueDate(LocalDate.now())
+                    .setStatus("PENDING")
+                    .setLastSynced(LocalDate.now());
             taskRepository.save(converter.convertDtoToEntity(defaultTask));
 
             taskServiceResponse.setHttpStatus(HttpStatus.CREATED)
@@ -196,7 +204,7 @@ public class TaskServiceImpl implements TaskService
         catch (IllegalArgumentException exception)
         {
             taskServiceResponse.setHttpStatus(HttpStatus.BAD_REQUEST)
-                            .setHttpMessage(exception.getMessage());
+                    .setHttpMessage(exception.getMessage());
         }
         return taskServiceResponse;
     }

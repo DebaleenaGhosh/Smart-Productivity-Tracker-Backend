@@ -24,10 +24,10 @@ public class Task
     private String title;
     private String description;
     private LocalDate dueDate;
+    private Integer priority;
     @Enumerated(EnumType.STRING)
     private Status status;
     private LocalDate lastSynced;
-    /// priority
 
     public enum Status
     {
@@ -35,6 +35,4 @@ public class Task
         IN_PROGRESS,
         COMPLETED
     }
-//    @ManyToOne
-//    private User user;
 }
