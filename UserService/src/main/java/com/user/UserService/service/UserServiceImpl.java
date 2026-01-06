@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService
             userServiceResponse.setUsername(userDto.getUsername());
             userServiceResponse.setRole(userDto.getRole());
             userServiceResponse.setEmail(userDto.getEmail());
+            userServiceResponse.setTaskCount(userDto.getTaskCount());
             userServiceResponse.setHttpStatus(HttpStatus.OK);
             userServiceResponse.setHttpMessage("User details retrieved successfully");
         }
@@ -75,15 +76,18 @@ public class UserServiceImpl implements UserService
         UserServiceResponse userServiceResponse = new UserServiceResponse();
         try
         {
-            UserProfile existingUserProfile = userRepo.findById(request.getId()).orElseThrow(()
+            UserProfile existingUserProfile = userRepo.findById(request.getUserId()).orElseThrow(()
                     -> new RuntimeException("User not found!"));
+            existingUserProfile.setUsername(request.getUserName());
             existingUserProfile.setEmail(request.getEmail());
-            existingUserProfile.setPassword(request.getPassword());
             existingUserProfile.setRole(UserProfile.Role.valueOf(request.getRole()));
             userRepo.save(existingUserProfile);
             /*Publishing the user event after successful update*/
             userEventPublisher.publishUserUpdated(converter.convertEntityToDto(existingUserProfile));
 
+            userServiceResponse.setUsername(existingUserProfile.getUsername());
+            userServiceResponse.setEmail(existingUserProfile.getEmail());
+            userServiceResponse.setRole(String.valueOf(existingUserProfile.getRole()));
             userServiceResponse.setHttpStatus(HttpStatus.OK);
             userServiceResponse.setHttpMessage("User updated successfully");
         }
@@ -104,6 +108,7 @@ public class UserServiceImpl implements UserService
                         userProfile.getUsername(),
                         userProfile.getEmail(),
                         String.valueOf(userProfile.getRole()),
+                        userProfile.getTaskCount(),
                         HttpStatus.FOUND,
                         "List of all users fetched"
                 ))
@@ -111,19 +116,24 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
-    public void incrementTaskCount(Long userId)
+    public void taskCountUpdate(Long userId, String updateRequest)
     {
         UserServiceResponse userServiceResponse = new UserServiceResponse();
         try {
             UserProfile userProfile = userRepo.findById(userId).orElseThrow(()
                     -> new UserNotFoundException("User not found!"));
-            UserDto userDto = converter.convertEntityToDto(userProfile);
-            Long taskCount = userDto.getTaskCount();
-            userDto.setTaskCount(taskCount + 1);
-            userRepo.save(converter.convertDtoToEntity(userDto));
-
+            
+            int taskCount = userProfile.getTaskCount();
+            if(updateRequest.contains("Increment"))
+                userProfile.setTaskCount(taskCount + 1);
+            else if(updateRequest.contains("Decrement"))
+                userProfile.setTaskCount(taskCount - 1);
+            else if(updateRequest.contains("Reset"))
+                userProfile.setTaskCount(0);
+            
+            userRepo.save(userProfile);
             userServiceResponse.setHttpStatus(HttpStatus.OK);
-            userServiceResponse.setHttpMessage("Task increment happened");
+            userServiceResponse.setHttpMessage("Task count was incremented");
         }
         catch (UserNotFoundException userNotFoundException)
         {
@@ -131,22 +141,4 @@ public class UserServiceImpl implements UserService
             userServiceResponse.setHttpMessage(userNotFoundException.getMessage());
         }
     }
-
-//    @Override
-//    public UserServiceResponse createUser(UserServiceRequest request)
-//    {
-//        UserDto userDto = new UserDto();
-//        userDto.setPassword(request.getPassword());
-//        userDto.setUsername(request.getUsername());
-//        userDto.setEmail(request.getEmail());
-//        userDto.setRole(request.getRole());
-//        userDto.setTaskCount(0L);
-//        UserProfile saved = userRepo.save(converter.convertDtoToEntity(userDto));
-//
-////        /*Publishing the user event after successful creation*/
-////        userEventPublisher.publishUserCreated(converter.convertEntityToDto(saved));
-//
-//        return new UserServiceResponse(saved.getUsername(), saved.getEmail(), String.valueOf(saved.getRole()));
-//    }
-
 }
