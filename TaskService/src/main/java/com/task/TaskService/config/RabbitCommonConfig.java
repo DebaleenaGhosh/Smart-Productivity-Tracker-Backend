@@ -33,12 +33,12 @@ public class RabbitCommonConfig
     {
         return ExchangeBuilder.topicExchange(USER_EVENTS_EXCHANGE).durable(true).build();
     }
-//    @Bean
+    //    @Bean
 //    public Queue userRegisteredQueue() { return new Queue(USER_REGISTERED_QUEUE, true); }
     @Bean
     public Queue taskUserEventsQueue() { return QueueBuilder.durable(TASK_USER_EVENTS_QUEUE).build(); }
 
-//    // Task service listens to user registration event
+    //    // Task service listens to user registration event
 //    @Bean
 //    public Binding bindingUserRegisteredQueue(Queue userRegisteredQueue, TopicExchange userEventsExchange)
 //    {

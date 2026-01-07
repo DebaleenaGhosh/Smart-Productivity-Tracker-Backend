@@ -8,9 +8,8 @@ import java.util.List;
 public interface UserService
 {
     UserServiceResponse getUser(Long userId);
-//    UserServiceResponse createUser(UserServiceRequest user);
     UserServiceResponse deleteUser(Long userId);
     List<UserServiceResponse> listOfUsers();
     UserServiceResponse updateUser(UserServiceRequest user);
-    void incrementTaskCount(Long userId);
+    void taskCountUpdate(Long userId, String updateRequest);
 }

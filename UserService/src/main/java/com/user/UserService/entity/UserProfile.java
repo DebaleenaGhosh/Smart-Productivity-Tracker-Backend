@@ -11,11 +11,10 @@ import lombok.*;
 public class UserProfile
 {
     @Id
-    @GeneratedValue
+//    @GeneratedValue
     private Long userId;
     private String username;
     private String email;
-    private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
     private int taskCount;

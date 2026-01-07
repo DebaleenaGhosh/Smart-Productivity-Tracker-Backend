@@ -10,26 +10,34 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class TaskEventListener {
-
+public class TaskEventListener
+{
     @Autowired
-    private TaskService taskService;    // Assuming TaskService exists for task operations
+    private TaskService taskService;
 
     @RabbitListener(queues = RabbitCommonConfig.TASK_USER_EVENTS_QUEUE )
-    public void onUserRegistrationEvent(UserEventDto dto) {
+    public void onUserEvent(UserEventDto dto)
+    {
         log.info("Task Service received user event: {} for user {} (ID: {})", dto.getEventType(), dto.getUserName(), dto.getUserId());
 
-        // Example actions based on event type:
-        if (dto.getEventType().contains("CREATED")) {
+        // User Created/Registered event
+        if (dto.getEventType().contains("CREATED"))
+        {
             // When a user is created, create a default task or associate existing tasks
             TaskServiceResponse defaultTask = taskService.createDefaultTaskForUser(dto.getUserId());
-            log.info("Created default task for new user: {} : {} , {}", dto.getUserName(), defaultTask.getStatus(), defaultTask.getHttpMessage());
+            log.info("Created default task for new user: {} : {}", dto.getUserName(), defaultTask.getHttpMessage());
         }
-        else if (dto.getEventType().contains("UPDATED")) {
-            // When a user is updated, perhaps re-sync tasks or send notifications
+        else if (dto.getEventType().contains("UPDATED"))
+        {
+            // When a user is updated, re-sync tasks or send notifications
             taskService.syncTasksForUser(dto.getUserId());
             log.info("Synced tasks for updated user: {}", dto.getUserName());
         }
-        // Add more event types as needed (e.g., "deleted")
+        else if(dto.getEventType().contains("DELETED"))
+        {
+            // When a user is deleted, delete all the corresponding tasks
+            taskService.deleteAllTasksByUserId(dto.getUserId());
+            log.info("Tasks deleted for user with Id: {}", dto.getUserId());
+        }
     }
 }

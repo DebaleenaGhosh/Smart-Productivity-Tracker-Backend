@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService
         try {
             UserProfile userProfile = userRepo.findById(userId).orElseThrow(()
                     -> new UserNotFoundException("User not found!"));
-            
+
             int taskCount = userProfile.getTaskCount();
             if(updateRequest.contains("Increment"))
                 userProfile.setTaskCount(taskCount + 1);
@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService
                 userProfile.setTaskCount(taskCount - 1);
             else if(updateRequest.contains("Reset"))
                 userProfile.setTaskCount(0);
-            
+
             userRepo.save(userProfile);
             userServiceResponse.setHttpStatus(HttpStatus.OK);
             userServiceResponse.setHttpMessage("Task count was incremented");
