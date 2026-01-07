@@ -1,6 +1,7 @@
 package com.task.TaskService.service;
 
 import com.task.TaskService.dto.TaskCreationRequest;
+import com.task.TaskService.dto.TaskEventDto;
 import com.task.TaskService.dto.TaskServiceRequest;
 import com.task.TaskService.dto.TaskServiceResponse;
 import com.task.TaskService.entity.Task;
@@ -15,5 +16,6 @@ public interface TaskService
     List<TaskServiceResponse> getAllTasksByUserId(Long userId);
     TaskServiceResponse updateTask(Long userId, TaskServiceRequest taskServiceRequest);
     TaskServiceResponse createDefaultTaskForUser(Long userId);
+    void deleteAllTasksByUserId(Long userId);
     void syncTasksForUser(Long userId);
 }

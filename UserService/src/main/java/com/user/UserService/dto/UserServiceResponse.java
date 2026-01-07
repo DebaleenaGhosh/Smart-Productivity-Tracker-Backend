@@ -11,6 +11,7 @@ public class UserServiceResponse
     private String username;
     private String email;
     private String role;
+    private int taskCount;
     private HttpStatus httpStatus;
     private String httpMessage;
 }

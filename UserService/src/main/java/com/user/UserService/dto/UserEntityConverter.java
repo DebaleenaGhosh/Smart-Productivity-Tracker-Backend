@@ -13,7 +13,7 @@ public class UserEntityConverter {
         userDto.setUsername(userProfile.getUsername());
         userDto.setEmail(userProfile.getEmail());
         userDto.setRole(String.valueOf(userProfile.getRole()));
-        userDto.setPassword(userProfile.getPassword());
+        userDto.setTaskCount(userProfile.getTaskCount());
         return userDto;
     }
 
@@ -24,7 +24,7 @@ public class UserEntityConverter {
         userProfile.setUsername(userDto.getUsername());
         userProfile.setEmail(userDto.getEmail());
         userProfile.setRole(UserProfile.Role.valueOf(userDto.getRole()));
-        userProfile.setPassword(userDto.getPassword());
+        userProfile.setTaskCount(userDto.getTaskCount());
         return userProfile;
     }
 

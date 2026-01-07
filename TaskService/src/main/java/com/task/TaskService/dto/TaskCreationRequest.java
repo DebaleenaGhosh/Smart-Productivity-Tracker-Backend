@@ -13,5 +13,5 @@ public class TaskCreationRequest
     private String title;
     private String description;
     private LocalDate dueDate;
-    private Integer priority;
+    private String priority;
 }

@@ -13,7 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Table(name="Tasks")
 @NamedQueries({
-        @NamedQuery(name="Task.findTaskByUserId", query="SELECT t FROM Task t WHERE t.userId= ?1")
+        @NamedQuery(name="Task.findTaskByUserId", query="SELECT t FROM Task t WHERE t.userId= ?1"),
+        @NamedQuery(name="Task.deleteAllTasksByUserId", query="DELETE FROM Task t WHERE t.userId=?1")
 })
 public class Task
 {
@@ -24,7 +25,7 @@ public class Task
     private String title;
     private String description;
     private LocalDate dueDate;
-    private Integer priority;
+    private String priority;
     @Enumerated(EnumType.STRING)
     private Status status;
     private LocalDate lastSynced;

@@ -14,7 +14,7 @@ public class TaskServiceRequest
     private Long taskId;
     private String title;
     private String description;
-    private Integer priority;
+    private String priority;
     private String status;
     private LocalDate dueDate;
 }

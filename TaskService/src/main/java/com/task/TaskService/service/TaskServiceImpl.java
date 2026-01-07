@@ -192,7 +192,7 @@ public class TaskServiceImpl implements TaskService
             defaultTask.setUserId(userId)
                     .setTitle("Let's get started by adding a new task")
                     .setDescription("This is your first task. Get started!")
-                    .setPriority(1)
+                    .setPriority("Low")
                     .setDueDate(LocalDate.now())
                     .setStatus("PENDING")
                     .setLastSynced(LocalDate.now());
@@ -207,6 +207,29 @@ public class TaskServiceImpl implements TaskService
                     .setHttpMessage(exception.getMessage());
         }
         return taskServiceResponse;
+    }
+
+    @Override
+    public void deleteAllTasksByUserId(Long userId)
+    {
+        TaskServiceResponse taskServiceResponse = new TaskServiceResponse();
+        try{
+            if (null == taskRepository.findTasksByUserId(userId))
+            {
+                throw new RuntimeException("No tasks found to delete!");
+            }
+            taskRepository.deleteAllTasksByUserId(userId);
+            /*Publishing the task event after successful deletion*/
+            publisher.publishAllTasksDeleted(userId);
+
+            taskServiceResponse.setHttpStatus(HttpStatus.OK);
+            taskServiceResponse.setHttpMessage("All tasks deleted successfully");
+        }
+        catch (RuntimeException exception)
+        {
+            taskServiceResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+            taskServiceResponse.setHttpMessage(exception.getMessage());
+        }
     }
 
     @Override
@@ -232,4 +255,3 @@ public class TaskServiceImpl implements TaskService
         }
     }
 }
-

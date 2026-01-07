@@ -38,5 +38,11 @@ public class TaskEventPublisher
         rabbitTemplate.convertAndSend(RabbitCommonConfig.TASK_EVENTS_EXCHANGE,"task.updated",taskEventDto);
         log.info("Published task.updated event for taskId={}",taskDto.getTaskId());
     }
-
+    // Publish all tasks deleted event
+    public void publishAllTasksDeleted(Long userId)
+    {
+        TaskEventDto taskEventDto = new TaskEventDto("ALL_TASKS_DELETED",null, userId,Instant.now(),null);
+        rabbitTemplate.convertAndSend(RabbitCommonConfig.TASK_EVENTS_EXCHANGE,"tasks.deleted",taskEventDto);
+        log.info("Published task.deleted event for userId = {}", userId);
+    }
 }

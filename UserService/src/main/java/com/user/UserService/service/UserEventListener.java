@@ -28,11 +28,11 @@ public class UserEventListener
     {
         log.info("User registration event received: {} for user {} (ID: {})", event.getEventType(), event.getUserName(), event.getUserId());
         UserDto userDto = new UserDto();
+        userDto.setId(event.getUserId());
         userDto.setUsername(event.getUserName());
-        userDto.setPassword(event.getPassword());
         userDto.setEmail(event.getEmail());
         userDto.setRole(event.getRole());
-        userDto.setTaskCount(0L);
+        userDto.setTaskCount(1);
         userRepository.save(converter.convertDtoToEntity(userDto));
     }
 
@@ -41,6 +41,14 @@ public class UserEventListener
     {
         log.info("UserProfile Service received task event: {} for userID {}", dto.getEventType(), dto.getUserId());
         // Example: increment user's task count, send notification, etc.
-        userService.incrementTaskCount(dto.getUserId());
+        if(dto.getEventType().contains("CREATED")){
+            userService.taskCountUpdate(dto.getUserId(), "Increment");
+        }
+        else if(dto.getEventType().contains("DELETED")){
+            userService.taskCountUpdate(dto.getUserId(), "Decrement");
+        }
+        else if(dto.getEventType().contains("ALL_TASKS_DELETED")){
+            userService.taskCountUpdate(dto.getUserId(), "Reset");
+        }
     }
 }

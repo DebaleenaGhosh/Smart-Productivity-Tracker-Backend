@@ -11,14 +11,14 @@ public class TaskServiceResponse
 {
     private String title;
     private String description;
-    private Integer priority;
+    private String priority;
     private String status;
     private LocalDate dueDate;
     private LocalDate lastSynced;
     private HttpStatus httpStatus;
     private String httpMessage;
 
-    public TaskServiceResponse(String title, String description, Integer priority, String status, LocalDate dueDate,
+    public TaskServiceResponse(String title, String description, String priority, String status, LocalDate dueDate,
                                LocalDate lastSynced, HttpStatus httpStatus, String httpMessage) {
         this.title = title;
         this.description = description;
@@ -40,7 +40,7 @@ public class TaskServiceResponse
         return this;
     }
 
-    public TaskServiceResponse setPriority(Integer priority) {
+    public TaskServiceResponse setPriority(String priority) {
         this.priority = priority;
         return this;
     }
