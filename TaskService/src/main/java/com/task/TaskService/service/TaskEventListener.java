@@ -31,13 +31,13 @@ public class TaskEventListener
         {
             // When a user is updated, re-sync tasks or send notifications
             taskService.syncTasksForUser(dto.getUserId());
-            log.info("Synced tasks for updated user: {}", dto.getUserName());
+            log.info("Synced tasks for updated user ID: {}", dto.getUserId());
         }
         else if(dto.getEventType().contains("DELETED"))
         {
             // When a user is deleted, delete all the corresponding tasks
             taskService.deleteAllTasksByUserId(dto.getUserId());
-            log.info("Tasks deleted for user with Id: {}", dto.getUserId());
+            log.info("Tasks deleted for user with ID: {}", dto.getUserId());
         }
     }
 }

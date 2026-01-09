@@ -170,10 +170,10 @@ public class TaskServiceImpl implements TaskService
                     .setHttpStatus(HttpStatus.FOUND)
                     .setHttpMessage("Task fetched successfully");
         }
-        catch (IllegalArgumentException exception)
+        catch (TaskNotFoundException taskNotFoundException)
         {
             taskServiceResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
-            taskServiceResponse.setHttpMessage(exception.getMessage());
+            taskServiceResponse.setHttpMessage(taskNotFoundException.getMessage());
         }
         return taskServiceResponse;
     }
