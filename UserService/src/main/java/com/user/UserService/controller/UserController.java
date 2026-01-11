@@ -17,7 +17,7 @@ public class UserController
     @Autowired
     private UserService userService;
 
-    @GetMapping("/{userId}")
+    @GetMapping("/fetchUser/{userId}")
     public ResponseEntity<UserServiceResponse> getUserById(@PathVariable Long userId)
     {
         UserServiceResponse userResponse = userService.getUser(userId);
@@ -29,7 +29,7 @@ public class UserController
         List<UserServiceResponse> listUser = userService.listOfUsers();
         return new ResponseEntity<>(listUser, HttpStatus.OK);
     }
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<UserServiceResponse> deleteUserByUserId(@PathVariable Long userId)
     {
         UserServiceResponse userResponse = userService.deleteUser(userId);
