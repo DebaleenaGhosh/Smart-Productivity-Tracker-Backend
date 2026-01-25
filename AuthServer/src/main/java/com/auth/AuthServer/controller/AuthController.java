@@ -2,6 +2,7 @@ package com.auth.AuthServer.controller;
 
 import com.auth.AuthServer.dto.*;
 import com.auth.AuthServer.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,18 @@ public class AuthController
     {
         LoginResponse loginResponse = authService.authenticate(loginRequest);
         return new ResponseEntity<>(loginResponse, loginResponse.getHttpStatus());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<LogoutResponse> userLogout(@RequestBody HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            authService.logout(token);
+        } else {
+            // fallback for session-based auth
+            authService.logoutSession(request);
+        }
+        return ResponseEntity.ok(new LogoutResponse("Logged out"));
     }
 }

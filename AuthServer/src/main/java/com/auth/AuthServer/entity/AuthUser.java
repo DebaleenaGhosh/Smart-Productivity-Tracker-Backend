@@ -38,6 +38,10 @@ public class AuthUser implements UserDetails
     @Column(nullable = false)
     private String password;
 
+    // new token column to persist current token (nullable)
+    @Column(name = "token", length = 1000)
+    private String token;
+
 //    @CreationTimestamp
 //    @Column(updatable = false, name = "created_at")
 //    private Date createdAt;

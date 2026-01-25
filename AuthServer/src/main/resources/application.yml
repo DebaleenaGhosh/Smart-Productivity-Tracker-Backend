@@ -17,7 +17,7 @@ spring:
 #              predicates:
 #                - Path=/task/**
   datasource:
-    url: jdbc:postgresql://localhost:5433/productivity_db
+    url: jdbc:postgresql://localhost:5432/productivity_db
     username: postgres
     password: manager
   jpa:

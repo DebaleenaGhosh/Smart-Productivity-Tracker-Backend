@@ -2,25 +2,33 @@ package com.auth.AuthServer.service;
 
 import com.auth.AuthServer.dto.*;
 import com.auth.AuthServer.entity.AuthUser;
+import com.auth.AuthServer.entity.BlackListedToken;
 import com.auth.AuthServer.exception.AccessDeniedException;
 import com.auth.AuthServer.exception.BadCredentialsException;
 import com.auth.AuthServer.repository.AuthUserRepository;
+import com.auth.AuthServer.repository.BlackListedTokenRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.Date;
+
 @Service
 public class AuthServiceImpl implements AuthService
 {
-    @Autowired
     private final AuthUserRepository authUserRepository;
-    @Autowired
     private final PasswordEncoder passwordEncoder;
-    @Autowired
     private final AuthenticationManager authenticationManager;
     @Autowired
     AuthEventPublisher authEventPublisher;
@@ -28,13 +36,18 @@ public class AuthServiceImpl implements AuthService
     JwtService jwtService;
     @Autowired
     UserEntityConverter converter;
+    private final BlackListedTokenRepository blacklistRepo;
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     public AuthServiceImpl(AuthUserRepository authUserRepository,
                            PasswordEncoder passwordEncoder,
-                           AuthenticationManager authenticationManager) {
+                           AuthenticationManager authenticationManager,
+                           BlackListedTokenRepository blacklistRepo, BlackListedTokenRepository blacklistRepo1) {
         this.authUserRepository = authUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.blacklistRepo = blacklistRepo1;
     }
 
     @Override
@@ -105,6 +118,57 @@ public class AuthServiceImpl implements AuthService
             loginResponse.setHttpMessage(accessDeniedException.getMessage());
         }
         return loginResponse;
+    }
+
+    @Override
+    public void logout(String token) {
+        if (token == null || token.isBlank()) return;
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            Date exp = claims.getExpiration();
+            Instant expiry = (exp != null) ? exp.toInstant() : Instant.now().plusSeconds(3600);
+
+            // clear token on the user record (if present)
+            authUserRepository.findByToken(token).ifPresent(user -> {
+                user.setToken(null);
+                authUserRepository.save(user);
+            });
+
+            BlackListedToken bt = new BlackListedToken();
+            bt.setToken(token);
+            bt.setExpiry(expiry);
+            blacklistRepo.save(bt);
+        } catch (Exception e) {
+            // Token invalid -> still store short-lived block to be safe
+            authUserRepository.findByToken(token).ifPresent(user -> {
+                user.setToken(null);
+                authUserRepository.save(user);
+            });
+            BlackListedToken bt = new BlackListedToken();
+            bt.setToken(token);
+            bt.setExpiry(Instant.now().plusSeconds(300));
+            blacklistRepo.save(bt);
+        }
+    }
+
+    @Override
+    public void logoutSession(HttpServletRequest request) {
+        try {
+            var session = request.getSession(false);
+            if (session != null) session.invalidate();
+            // also clear security context if using Spring Security
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        } catch (Exception ignored) {}
+    }
+
+    // periodic cleanup of expired blacklisted tokens
+    @Scheduled(fixedDelayString = "PT1H")
+    public void cleanupExpired() {
+        blacklistRepo.deleteByExpiryBefore(Instant.now());
     }
 }
 

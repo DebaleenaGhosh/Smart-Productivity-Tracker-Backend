@@ -1,5 +1,6 @@
 package com.auth.AuthServer.security;
 
+import com.auth.AuthServer.repository.BlackListedTokenRepository;
 import com.auth.AuthServer.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,16 +25,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final BlackListedTokenRepository blackListedTokenRepository;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserDetailsService userDetailsService,
-            HandlerExceptionResolver handlerExceptionResolver
+            HandlerExceptionResolver handlerExceptionResolver,
+            BlackListedTokenRepository blackListedTokenRepository
     )
     {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.handlerExceptionResolver = handlerExceptionResolver;
+        this.blackListedTokenRepository = blackListedTokenRepository;
     }
 
     @Override
@@ -54,8 +58,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
         try
         {
             final String jwt = authHeader.substring(7);
-            final String userName = jwtService.extractUsername(jwt);
 
+            if (blackListedTokenRepository.existsByToken(jwt)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            final String userName = jwtService.extractUsername(jwt);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (userName != null && authentication == null)
