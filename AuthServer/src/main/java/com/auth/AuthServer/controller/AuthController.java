@@ -33,7 +33,7 @@ public class AuthController
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<LogoutResponse> userLogout(@RequestBody HttpServletRequest request) {
+    public ResponseEntity<LogoutResponse> userLogout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);

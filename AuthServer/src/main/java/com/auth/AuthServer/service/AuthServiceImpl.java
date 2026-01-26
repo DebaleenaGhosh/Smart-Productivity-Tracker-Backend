@@ -122,32 +122,28 @@ public class AuthServiceImpl implements AuthService
 
     @Override
     public void logout(String token) {
+
         if (token == null || token.isBlank()) return;
+
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-            Date exp = claims.getExpiration();
-            Instant expiry = (exp != null) ? exp.toInstant() : Instant.now().plusSeconds(3600);
 
-            // clear token on the user record (if present)
-            authUserRepository.findByToken(token).ifPresent(user -> {
-                user.setToken(null);
-                authUserRepository.save(user);
-            });
+            Date exp = claims.getExpiration();
+            Instant expiry = (exp != null)
+                    ? exp.toInstant()
+                    : Instant.now().plusSeconds(3600);
 
             BlackListedToken bt = new BlackListedToken();
             bt.setToken(token);
             bt.setExpiry(expiry);
             blacklistRepo.save(bt);
+
         } catch (Exception e) {
-            // Token invalid -> still store short-lived block to be safe
-            authUserRepository.findByToken(token).ifPresent(user -> {
-                user.setToken(null);
-                authUserRepository.save(user);
-            });
+            // even if token is bad, still block it briefly
             BlackListedToken bt = new BlackListedToken();
             bt.setToken(token);
             bt.setExpiry(Instant.now().plusSeconds(300));

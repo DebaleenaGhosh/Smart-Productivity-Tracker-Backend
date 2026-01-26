@@ -2,6 +2,7 @@ package com.auth.AuthServer.security;
 
 import com.auth.AuthServer.repository.BlackListedTokenRepository;
 import com.auth.AuthServer.service.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter
@@ -60,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
             final String jwt = authHeader.substring(7);
 
             if (blackListedTokenRepository.existsByToken(jwt)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 
@@ -87,7 +89,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
         }
         catch (Exception exception)
         {
-            handlerExceptionResolver.resolveException(request, response, null, exception);
-        }
+//            handlerExceptionResolver.resolveException(request, response, null, exception);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            String jsonResponse = new ObjectMapper().writeValueAsString(
+                    Map.of("error", "Authentication failed: " + exception.getMessage())
+            );
+            response.getWriter().write(jsonResponse);        }
     }
 }
