@@ -47,12 +47,12 @@ public class TaskServiceImpl implements TaskService
             publisher.publishTaskCreated(converter.convertEntityToDto(savedTask));
 
             taskServiceResponse
-                    .setTitle(taskDto.getTitle())
-                    .setDescription(taskDto.getDescription())
-                    .setPriority(taskDto.getPriority())
-                    .setStatus(taskDto.getStatus())
-                    .setDueDate(taskDto.getDueDate())
-                    .setLastSynced(taskDto.getLastSynced())
+                    .setTitle(savedTask.getTitle())
+                    .setDescription(savedTask.getDescription())
+                    .setPriority(savedTask.getPriority())
+                    .setStatus(String.valueOf(savedTask.getStatus()))
+                    .setDueDate(savedTask.getDueDate())
+                    .setLastSynced(savedTask.getLastSynced())
                     .setHttpStatus(HttpStatus.CREATED)
                     .setHttpMessage("Task created successfully");
         }
@@ -109,14 +109,14 @@ public class TaskServiceImpl implements TaskService
 
             Task updatedTask = taskRepository.save(existingTask);
             /*Publishing the task event after successful update*/
-            publisher.publishTaskUpdated(converter.convertEntityToDto(existingTask));
+            publisher.publishTaskUpdated(converter.convertEntityToDto(updatedTask));
 
-            taskServiceResponse.setTitle(existingTask.getTitle())
-                    .setDescription(existingTask.getDescription())
-                    .setPriority(existingTask.getPriority())
-                    .setStatus(String.valueOf(existingTask.getStatus()))
-                    .setDueDate(existingTask.getDueDate())
-                    .setLastSynced(existingTask.getLastSynced())
+            taskServiceResponse.setTitle(updatedTask.getTitle())
+                    .setDescription(updatedTask.getDescription())
+                    .setPriority(updatedTask.getPriority())
+                    .setStatus(String.valueOf(updatedTask.getStatus()))
+                    .setDueDate(updatedTask.getDueDate())
+                    .setLastSynced(updatedTask.getLastSynced())
                     .setHttpStatus(HttpStatus.OK)
                     .setHttpMessage("Task updated successfully");
         }
