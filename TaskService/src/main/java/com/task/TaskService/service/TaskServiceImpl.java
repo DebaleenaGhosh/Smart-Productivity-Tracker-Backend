@@ -71,10 +71,10 @@ public class TaskServiceImpl implements TaskService
         try{
             Task task = taskRepository.findById(taskId)
                     .orElseThrow( () -> new TaskNotFoundException("Task Not found"));
-            if (!userId.equals(task.getUserId()))
-            {
-                throw new RuntimeException("Unauthorized to modify this task");
-            }
+//            if (!userId.equals(task.getUserId()))
+//            {
+//                throw new RuntimeException("Unauthorized to modify this task");
+//            }
             taskRepository.delete(task);
             /*Publishing the task event after successful deletion*/
             publisher.publishTaskDeleted(taskId, userId);
@@ -97,9 +97,9 @@ public class TaskServiceImpl implements TaskService
         try {
             Task existingTask = taskRepository.findById(taskServiceRequest.getTaskId())
                     .orElseThrow(() -> new TaskNotFoundException("Task Not found"));
-            if (!userId.equals(existingTask.getUserId())) {
-                throw new RuntimeException("Unauthorized to modify this task");
-            }
+//            if (!userId.equals(existingTask.getUserId())) {
+//                throw new RuntimeException("Unauthorized to modify this task");
+//            }
             existingTask.setTitle(taskServiceRequest.getTitle());
             existingTask.setDescription(taskServiceRequest.getDescription());
             existingTask.setPriority(taskServiceRequest.getPriority());
