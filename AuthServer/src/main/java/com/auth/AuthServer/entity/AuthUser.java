@@ -12,8 +12,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
 @Table(name="AuthUsers")
 @NamedQueries({
         @NamedQuery(name = "Auth.findByEmail", query = "SELECT u FROM AuthUser u WHERE u.email = ?1"),
@@ -41,14 +39,6 @@ public class AuthUser implements UserDetails
     // new token column to persist current token (nullable)
     @Column(name = "token", length = 1000)
     private String token;
-
-//    @CreationTimestamp
-//    @Column(updatable = false, name = "created_at")
-//    private Date createdAt;
-//
-//    @UpdateTimestamp
-//    @Column(name = "updated_at")
-//    private Date updatedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

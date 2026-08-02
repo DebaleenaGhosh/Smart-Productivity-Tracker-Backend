@@ -28,18 +28,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final BlackListedTokenRepository blackListedTokenRepository;
+    private final ObjectMapper objectMapper;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserDetailsService userDetailsService,
             HandlerExceptionResolver handlerExceptionResolver,
-            BlackListedTokenRepository blackListedTokenRepository
+            BlackListedTokenRepository blackListedTokenRepository,
+            ObjectMapper objectMapper
     )
     {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.handlerExceptionResolver = handlerExceptionResolver;
         this.blackListedTokenRepository = blackListedTokenRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -94,8 +97,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
-            String jsonResponse = new ObjectMapper().writeValueAsString(
-                    Map.of("error", "Authentication failed: " + exception.getMessage())
+            String jsonResponse = objectMapper.writeValueAsString(
+                    Map.of("error", "Authentication failed: ")
             );
             response.getWriter().write(jsonResponse);        }
     }
