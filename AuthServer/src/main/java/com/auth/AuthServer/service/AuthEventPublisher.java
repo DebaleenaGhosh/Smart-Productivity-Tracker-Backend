@@ -2,9 +2,7 @@ package com.auth.AuthServer.service;
 
 import com.auth.AuthServer.config.RabbitCommonConfig;
 import com.auth.AuthServer.dto.AuthUserDto;
-import com.auth.AuthServer.dto.LoginRequest;
 import com.auth.AuthServer.dto.UserRegisteredEventDto;
-import com.auth.AuthServer.entity.AuthUser;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

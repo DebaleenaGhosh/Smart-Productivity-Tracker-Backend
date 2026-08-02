@@ -1,8 +1,5 @@
 package com.auth.AuthServer.service;
 
-import com.auth.AuthServer.dto.LoginRequest;
-import com.auth.AuthServer.dto.LoginResponse;
-import com.auth.AuthServer.dto.RegisteredUserResponse;
 import com.auth.AuthServer.entity.AuthUser;
 import org.springframework.security.core.userdetails.UserDetails;
 

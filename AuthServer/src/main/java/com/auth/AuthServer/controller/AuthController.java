@@ -1,8 +1,13 @@
 package com.auth.AuthServer.controller;
 
-import com.auth.AuthServer.dto.*;
+import com.auth.AuthServer.dto.request.LoginRequest;
+import com.auth.AuthServer.dto.request.RegisterRequest;
+import com.auth.AuthServer.dto.response.LoginResponse;
+import com.auth.AuthServer.dto.response.LogoutResponse;
+import com.auth.AuthServer.dto.response.RegisteredUserResponse;
 import com.auth.AuthServer.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,21 +20,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController
 {
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisteredUserResponse> userRegister(@RequestBody RegisterRequest registerRequest)
+    public ResponseEntity<RegisteredUserResponse> userRegister(@Valid @RequestBody RegisterRequest registerRequest)
     {
         RegisteredUserResponse registeredUserResponse = authService.userRegistration(registerRequest);
-        return new ResponseEntity<>(registeredUserResponse, registeredUserResponse.getHttpStatus());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(registeredUserResponse);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> userLogin(@RequestBody LoginRequest loginRequest)
+    public ResponseEntity<LoginResponse> userLogin(@Valid @RequestBody LoginRequest loginRequest)
     {
         LoginResponse loginResponse = authService.authenticate(loginRequest);
-        return new ResponseEntity<>(loginResponse, loginResponse.getHttpStatus());
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/logout")
@@ -38,10 +48,9 @@ public class AuthController
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             authService.logout(token);
-        } else {
-            // fallback for session-based auth
-            authService.logoutSession(request);
         }
-        return ResponseEntity.ok(new LogoutResponse("Logged out"));
+        return ResponseEntity.ok(
+                new LogoutResponse("Logged out successfully")
+        );
     }
 }

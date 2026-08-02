@@ -1,10 +1,16 @@
 package com.auth.AuthServer.service;
 
 import com.auth.AuthServer.dto.*;
+import com.auth.AuthServer.dto.request.LoginRequest;
+import com.auth.AuthServer.dto.request.RegisterRequest;
+import com.auth.AuthServer.dto.response.LoginResponse;
+import com.auth.AuthServer.dto.response.RegisteredUserResponse;
 import com.auth.AuthServer.entity.AuthUser;
 import com.auth.AuthServer.entity.BlackListedToken;
 import com.auth.AuthServer.exception.AccessDeniedException;
 import com.auth.AuthServer.exception.BadCredentialsException;
+import com.auth.AuthServer.exception.DuplicateResourceException;
+import com.auth.AuthServer.mapper.UserEntityMapper;
 import com.auth.AuthServer.repository.AuthUserRepository;
 import com.auth.AuthServer.repository.BlackListedTokenRepository;
 import io.jsonwebtoken.Claims;
@@ -12,7 +18,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,22 +25,21 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.Date;
 
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService
 {
     private final AuthUserRepository authUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    @Autowired
-    AuthEventPublisher authEventPublisher;
-    @Autowired
-    JwtService jwtService;
-    @Autowired
-    UserEntityConverter converter;
+    private final AuthEventPublisher authEventPublisher;
+    private final JwtService jwtService;
+    private final UserEntityMapper mapper;
     private final BlackListedTokenRepository blacklistRepo;
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -43,55 +47,58 @@ public class AuthServiceImpl implements AuthService
     public AuthServiceImpl(AuthUserRepository authUserRepository,
                            PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager,
-                           BlackListedTokenRepository blacklistRepo, BlackListedTokenRepository blacklistRepo1) {
+                           BlackListedTokenRepository blacklistRepo, AuthEventPublisher authEventPublisher, JwtService jwtService, UserEntityMapper mapper, BlackListedTokenRepository blacklistRepo1) {
         this.authUserRepository = authUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.authEventPublisher = authEventPublisher;
+        this.jwtService = jwtService;
+        this.mapper = mapper;
         this.blacklistRepo = blacklistRepo1;
     }
 
     @Override
     public RegisteredUserResponse userRegistration(RegisterRequest input)
     {
+        if(authUserRepository.findByUserName(input.getUserName()).isPresent()){
+            throw new DuplicateResourceException("Username already exists");
+        }
+
+        if(authUserRepository.findByEmail(input.getEmail()).isPresent()){
+            throw new DuplicateResourceException("Email already exists");
+        }
+
+        if(!StringUtils.isAlphanumeric(input.getUserName())){
+            throw new BadCredentialsException("Username can contain only numbers and letters");
+        }
+
         RegisteredUserResponse registeredUserResponse = new RegisteredUserResponse();
-        try {
-            if (authUserRepository.findByUserName(input.getUserName()).isPresent()
-                    || authUserRepository.findByEmail(input.getEmail()).isPresent()) {
-                throw new RuntimeException("Duplicate value exists");
-            } else if (!StringUtils.isAlphanumeric(input.getUserName())) {
-                throw new BadCredentialsException("Username is invalid!");
-            }
-            AuthUserDto authUserDto = new AuthUserDto()
-                    .setUserName(input.getUserName())
-                    .setEmail(input.getEmail())
-                    .setRole(input.getRole())
-                    .setPassword(passwordEncoder.encode(input.getPassword()));
-            AuthUser authUser = authUserRepository.save(converter.convertDtoToEntity(authUserDto));
 
-            // Publish event
-            authEventPublisher.publishUserCreated(converter.convertEntityToDto(authUser));
+        AuthUserDto authUserDto = new AuthUserDto()
+                .setUserName(input.getUserName())
+                .setEmail(input.getEmail())
+                .setRole(input.getRole())
+                .setPassword(passwordEncoder.encode(input.getPassword()));
+        AuthUser authUser = authUserRepository.save(mapper.convertDtoToEntity(authUserDto));
 
-            registeredUserResponse.setUserId(authUser.getUserId())
-                                .setUserName(authUser.getUsername())
-                                .setEmail(authUser.getEmail())
-                                .setRole(authUser.getRole())
-                                .setHttpStatus(HttpStatus.CREATED)
-                                .setHttpMessage("User created successfully");
-        }
-        catch(BadCredentialsException | RuntimeException exception)
-        {
-            registeredUserResponse.setHttpStatus(HttpStatus.BAD_REQUEST)
-                                .setHttpMessage(exception.getMessage());
-            return registeredUserResponse;
-        }
+        // Publish event
+        authEventPublisher.publishUserCreated(mapper.convertEntityToDto(authUser));
+
+        log.info(
+                "User registered successfully. userId = {}", authUser.getUserId()
+        );
+
+        registeredUserResponse.setUserId(authUser.getUserId())
+                .setUserName(authUser.getUsername())
+                .setEmail(authUser.getEmail())
+                .setRole(authUser.getRole());
         return registeredUserResponse;
     }
 
     @Override
     public LoginResponse authenticate(LoginRequest loginRequest) {
         LoginResponse loginResponse = new LoginResponse();
-        try
-        {
+        try {
             // Perform authentication
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -99,25 +106,28 @@ public class AuthServiceImpl implements AuthService
                             loginRequest.getPassword()
                     )
             );
-            // Extract authenticated user details
-            AuthUser authenticatedAuthUser = authUserRepository.findByEmail(loginRequest.getEmail())
-                    .orElseThrow(() -> new AccessDeniedException("Not authorized"));
-
-            // Generate JWT for this authenticated user
-            String token = jwtService.generateToken(authenticatedAuthUser);
-
-            // Prepare response
-            loginResponse.setToken(token);
-            loginResponse.setExpiresIn(jwtService.getExpirationTime());
-            loginResponse.setHttpStatus(HttpStatus.ACCEPTED);
-            loginResponse.setHttpMessage("Logged in successfully");
         }
-        catch(AccessDeniedException accessDeniedException)
-        {
-            loginResponse.setHttpStatus(HttpStatus.UNAUTHORIZED);
-            loginResponse.setHttpMessage(accessDeniedException.getMessage());
+        catch (org.springframework.security.authentication.BadCredentialsException exception) {
+            throw new BadCredentialsException(
+                    "Invalid username or password"
+            );
         }
-        return loginResponse;
+        // Extract authenticated user details
+        AuthUser authenticatedAuthUser = authUserRepository.findByUserName(loginRequest.getUserName())
+                .orElseThrow(() -> new AccessDeniedException("User account could not be found"));
+
+        // Generate JWT for this authenticated user
+        String token = jwtService.generateToken(authenticatedAuthUser);
+
+        log.info(
+                "User authenticated successfully. userId={}",
+                authenticatedAuthUser.getUserId()
+        );
+        // Prepare response
+        return new LoginResponse(
+                token,
+                jwtService.getExpirationTime()
+        );
     }
 
     @Override
@@ -151,20 +161,22 @@ public class AuthServiceImpl implements AuthService
         }
     }
 
-    @Override
-    public void logoutSession(HttpServletRequest request) {
-        try {
-            var session = request.getSession(false);
-            if (session != null) session.invalidate();
-            // also clear security context if using Spring Security
-            org.springframework.security.core.context.SecurityContextHolder.clearContext();
-        } catch (Exception ignored) {}
-    }
+// SessionCreationPolicy.STATELESS is defined in security configuration hence logout session not required
 
-    // periodic cleanup of expired blacklisted tokens
-    @Scheduled(fixedDelayString = "PT1H")
-    public void cleanupExpired() {
-        blacklistRepo.deleteByExpiryBefore(Instant.now());
-    }
+//    @Override
+//    public void logoutSession(HttpServletRequest request) {
+//        try {
+//            var session = request.getSession(false);
+//            if (session != null) session.invalidate();
+//            // also clear security context if using Spring Security
+//            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+//        } catch (Exception ignored) {}
+//    }
+//
+//    // periodic cleanup of expired blacklisted tokens
+//    @Scheduled(fixedDelayString = "PT1H")
+//    public void cleanupExpired() {
+//        blacklistRepo.deleteByExpiryBefore(Instant.now());
+//    }
 }
 

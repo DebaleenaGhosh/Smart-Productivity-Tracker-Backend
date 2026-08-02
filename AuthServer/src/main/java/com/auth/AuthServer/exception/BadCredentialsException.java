@@ -1,6 +1,6 @@
 package com.auth.AuthServer.exception;
 
-public class BadCredentialsException extends Exception
+public class BadCredentialsException extends RuntimeException
 {
     public BadCredentialsException(String message)
     {

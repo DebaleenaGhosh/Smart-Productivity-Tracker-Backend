@@ -1,5 +1,6 @@
 package com.auth.AuthServer.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -15,6 +16,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration
@@ -47,10 +49,18 @@ public class SecurityConfiguration
 
         http.exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex2) -> {
-                    System.out.println("AUTH ENTRYPOINT: " + ex2.getMessage());
+                    log.warn(
+                            "Authentication failed for {}: {}",
+                            req.getRequestURI(),
+                            ex2.getMessage()
+                    );
                 })
                 .accessDeniedHandler((req, res, ex2) -> {
-                    System.out.println("ACCESS DENIED: " + ex2.getMessage());
+                    log.warn(
+                            "Access denied for {}: {}",
+                            req.getRequestURI(),
+                            ex2.getMessage()
+                    );
                 })
         );
 
