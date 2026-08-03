@@ -3,9 +3,8 @@ package com.user.UserService.service;
 import com.user.UserService.config.RabbitCommonConfig;
 import com.user.UserService.dto.TaskEventDto;
 import com.user.UserService.dto.UserDto;
-import com.user.UserService.dto.UserEntityConverter;
+import com.user.UserService.mapper.UserEntityMapper;
 import com.user.UserService.dto.UserRegisteredEventDto;
-import com.user.UserService.entity.UserProfile;
 import com.user.UserService.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -21,7 +20,7 @@ public class UserEventListener
     @Autowired
     UserRepository userRepository;
     @Autowired
-    UserEntityConverter converter;
+    UserEntityMapper converter;
 
     @RabbitListener(queues = RabbitCommonConfig.USER_REGISTERED_QUEUE )
     public void handleUserRegistered(UserRegisteredEventDto event)

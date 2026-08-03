@@ -1,21 +1,12 @@
-package com.user.UserService.dto;
+package com.user.UserService.mapper;
 
+import com.user.UserService.dto.UserDto;
+import com.user.UserService.dto.response.UserServiceResponse;
 import com.user.UserService.entity.UserProfile;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserEntityConverter {
-
-    public UserDto convertEntityToDto(UserProfile userProfile)
-    {
-        UserDto userDto = new UserDto();
-        userDto.setId(userProfile.getUserId());
-        userDto.setUsername(userProfile.getUsername());
-        userDto.setEmail(userProfile.getEmail());
-        userDto.setRole(String.valueOf(userProfile.getRole()));
-        userDto.setTaskCount(userProfile.getTaskCount());
-        return userDto;
-    }
+public class UserEntityMapper {
 
     public UserProfile convertDtoToEntity(UserDto userDto)
     {
@@ -28,4 +19,13 @@ public class UserEntityConverter {
         return userProfile;
     }
 
+    public UserServiceResponse toResponse(UserProfile user)
+    {
+        return UserServiceResponse.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(String.valueOf(user.getRole()))
+                .build();
+    }
 }

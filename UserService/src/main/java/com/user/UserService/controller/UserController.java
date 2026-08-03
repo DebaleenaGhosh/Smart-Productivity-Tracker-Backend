@@ -1,8 +1,9 @@
 package com.user.UserService.controller;
 
-import com.user.UserService.dto.UserServiceRequest;
-import com.user.UserService.dto.UserServiceResponse;
+import com.user.UserService.dto.request.UserServiceRequest;
+import com.user.UserService.dto.response.UserServiceResponse;
 import com.user.UserService.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,24 +22,25 @@ public class UserController
     public ResponseEntity<UserServiceResponse> getUserById(@PathVariable Long userId)
     {
         UserServiceResponse userResponse = userService.getUser(userId);
-        return new ResponseEntity<>(userResponse, userResponse.getHttpStatus());
+        return ResponseEntity.ok(userResponse);
     }
     @GetMapping("/usersList")
     public ResponseEntity<List<UserServiceResponse>> getListOfAllUsers()
     {
         List<UserServiceResponse> listUser = userService.listOfUsers();
-        return new ResponseEntity<>(listUser, HttpStatus.OK);
+        return ResponseEntity.ok(listUser);
     }
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<UserServiceResponse> deleteUserByUserId(@PathVariable Long userId)
     {
-        UserServiceResponse userResponse = userService.deleteUser(userId);
-        return new ResponseEntity<>(userResponse.getHttpStatus());
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
-    @PutMapping("/updateUser")
-    public ResponseEntity<UserServiceResponse> updateUser(@RequestBody UserServiceRequest userRequest)
+    @PutMapping("/updateUser/{userId}")
+    public ResponseEntity<UserServiceResponse> updateUser(@PathVariable Long userId,
+                                                          @Valid @RequestBody UserServiceRequest userRequest)
     {
-        UserServiceResponse userResponse = userService.updateUser(userRequest);
-        return new ResponseEntity<>(userResponse, userResponse.getHttpStatus());
+        UserServiceResponse userResponse = userService.updateUser(userId, userRequest);
+        return ResponseEntity.ok(userResponse);
     }
 }
