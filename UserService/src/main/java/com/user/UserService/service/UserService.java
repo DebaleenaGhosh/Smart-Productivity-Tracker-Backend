@@ -1,15 +1,15 @@
 package com.user.UserService.service;
 
-import com.user.UserService.dto.UserServiceRequest;
-import com.user.UserService.dto.UserServiceResponse;
+import com.user.UserService.dto.request.UserServiceRequest;
+import com.user.UserService.dto.response.UserServiceResponse;
 
 import java.util.List;
 
 public interface UserService
 {
     UserServiceResponse getUser(Long userId);
-    UserServiceResponse deleteUser(Long userId);
+    void deleteUser(Long userId);
     List<UserServiceResponse> listOfUsers();
-    UserServiceResponse updateUser(UserServiceRequest user);
+    UserServiceResponse updateUser(Long userId, UserServiceRequest user);
     void taskCountUpdate(Long userId, String updateRequest);
 }
