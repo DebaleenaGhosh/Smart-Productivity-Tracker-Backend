@@ -16,11 +16,8 @@ import com.auth.AuthServer.repository.BlackListedTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -102,7 +99,7 @@ public class AuthServiceImpl implements AuthService
             // Perform authentication
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUserName(),
+                            loginRequest.getUsername(),
                             loginRequest.getPassword()
                     )
             );
@@ -113,7 +110,7 @@ public class AuthServiceImpl implements AuthService
             );
         }
         // Extract authenticated user details
-        AuthUser authenticatedAuthUser = authUserRepository.findByUserName(loginRequest.getUserName())
+        AuthUser authenticatedAuthUser = authUserRepository.findByUserName(loginRequest.getUsername())
                 .orElseThrow(() -> new AccessDeniedException("User account could not be found"));
 
         // Generate JWT for this authenticated user

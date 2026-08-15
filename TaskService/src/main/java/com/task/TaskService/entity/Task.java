@@ -12,10 +12,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="Tasks")
-@NamedQueries({
-        @NamedQuery(name="Task.findTaskByUserId", query="SELECT t FROM Task t WHERE t.userId= ?1"),
-        @NamedQuery(name="Task.deleteAllTasksByUserId", query="DELETE FROM Task t WHERE t.userId=?1")
-})
 public class Task
 {
     @Id

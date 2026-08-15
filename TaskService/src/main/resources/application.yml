@@ -3,10 +3,10 @@ server:
 spring:
   application:
     name: TASK-SERVICE
-  main:
-    web:
-      application:
-        type: reactive
+#  main:
+#    web:
+#      application:
+#        type: reactive
   datasource:
     url: jdbc:postgresql://localhost:5433/productivity_db
     username: postgres
@@ -14,7 +14,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
