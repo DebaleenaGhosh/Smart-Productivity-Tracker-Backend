@@ -1,11 +1,26 @@
-package com.task.TaskService.dto;
+package com.task.TaskService.mapper;
 
+import com.task.TaskService.dto.TaskDto;
+import com.task.TaskService.dto.response.TaskServiceResponse;
 import com.task.TaskService.entity.Task;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TaskEntityConverter
+public class TaskMapper
 {
+    public TaskServiceResponse toResponse ( Task task )
+    {
+        return TaskServiceResponse.builder()
+                        .taskId(task.getTaskId())
+                        .title(task.getTitle())
+                        .description(task.getDescription())
+                        .priority(task.getPriority())
+                        .status(task.getStatus().name())
+                        .dueDate(task.getDueDate())
+                        .lastSynced(task.getLastSynced())
+                        .build();
+    }
+
     public TaskDto convertEntityToDto(Task task)
     {
         TaskDto taskDto = new TaskDto();

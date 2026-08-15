@@ -1,8 +1,8 @@
 package com.task.TaskService.service;
 
 import com.task.TaskService.config.RabbitCommonConfig;
-import com.task.TaskService.dto.TaskServiceResponse;
-import com.task.TaskService.dto.UserEventDto;
+import com.task.TaskService.dto.response.TaskServiceResponse;
+import com.task.TaskService.event.UserEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ public class TaskEventListener
     private TaskService taskService;
 
     @RabbitListener(queues = RabbitCommonConfig.TASK_USER_EVENTS_QUEUE )
-    public void onUserEvent(UserEventDto dto)
+    public void onUserEvent(UserEvent dto)
     {
         log.info("Task Service received user event: {} for user ID: {})", dto.getEventType(), dto.getUserId());
 
@@ -25,7 +25,7 @@ public class TaskEventListener
         {
             // When a user is created, create a default task or associate existing tasks
             TaskServiceResponse defaultTask = taskService.createDefaultTaskForUser(dto.getUserId());
-            log.info("Created default task for new user: {} : {}", dto.getUserName(), defaultTask.getHttpMessage());
+            log.info("Created default task for new user: {}", dto.getUserName());
         }
         else if (dto.getEventType().contains("UPDATED"))
         {

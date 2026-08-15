@@ -1,9 +1,10 @@
 package com.task.TaskService.controller;
 
-import com.task.TaskService.dto.TaskCreationRequest;
-import com.task.TaskService.dto.TaskServiceRequest;
-import com.task.TaskService.dto.TaskServiceResponse;
+import com.task.TaskService.dto.request.CreateTaskRequest;
+import com.task.TaskService.dto.request.UpdateTaskRequest;
+import com.task.TaskService.dto.response.TaskServiceResponse;
 import com.task.TaskService.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,42 +16,48 @@ import java.util.List;
 @RequestMapping("/tasks")
 public class TaskController
 {
-    @Autowired
-    private TaskService taskService;
+    private final TaskService taskService;
 
-    @PostMapping("/createTask")
-    public ResponseEntity<TaskServiceResponse> createTask(@RequestHeader("X-User-Id") Long userId, @RequestBody TaskCreationRequest taskCreationRequest)
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
+    }
+
+    @PostMapping()
+    public ResponseEntity<TaskServiceResponse> createTask(@RequestHeader("X-User-Id") Long userId,
+                                                          @Valid @RequestBody CreateTaskRequest createTaskRequest)
     {
-        TaskServiceResponse createdTask = taskService.createTask(userId, taskCreationRequest);
-        return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+        TaskServiceResponse createdTask = taskService.createTask(userId, createTaskRequest);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(createdTask);
     }
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<TaskServiceResponse> deleteTask(@RequestHeader("X-User-Id") Long userId, @PathVariable Long taskId)
     {
-        TaskServiceResponse taskServiceResponse = taskService.deleteTask(userId, taskId);
-        return new ResponseEntity<>(taskServiceResponse.getHttpStatus());
+        taskService.deleteTask(userId, taskId);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/taskList")
+    @GetMapping()
     public ResponseEntity<List<TaskServiceResponse>> getAllListOfTasksByUserId(@RequestHeader("X-User-Id") Long userId)
     {
         List<TaskServiceResponse> listTasks = taskService.getAllTasksByUserId(userId);
-        return new ResponseEntity<>(listTasks, HttpStatus.OK);
+        return ResponseEntity.ok(listTasks);
     }
 
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskServiceResponse> getTaskByTaskId(@RequestHeader("X-User-Id") Long userId, @PathVariable Long taskId)
     {
-        TaskServiceResponse task = taskService.getTaskByTaskId(taskId);
-        return new ResponseEntity<>(task, task.getHttpStatus());
+        TaskServiceResponse task = taskService.getTaskByTaskId(userId, taskId);
+        return ResponseEntity.ok(task);
     }
 
-    @PutMapping("/updateTask")
-    public ResponseEntity<TaskServiceResponse> updateTask(@RequestHeader("X-User-Id") Long userId, @RequestBody TaskServiceRequest taskServiceRequest)
+    @PutMapping("/{taskId}")
+    public ResponseEntity<TaskServiceResponse> updateTask(@RequestHeader("X-User-Id") Long userId, @RequestBody UpdateTaskRequest updateTaskRequest)
     {
-        TaskServiceResponse updatedTask = taskService.updateTask(userId, taskServiceRequest);
-        return new ResponseEntity<>(updatedTask, updatedTask.getHttpStatus());
+        TaskServiceResponse updatedTask = taskService.updateTask(userId, updateTaskRequest);
+        return ResponseEntity.ok(updatedTask);
     }
 }
 
