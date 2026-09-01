@@ -1,18 +1,23 @@
-package com.user.UserService.dto;
+package com.spt.events;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
-public class UserEventDto
-{
+@AllArgsConstructor
+public class EventMetadata {
+
+    private String eventId;
+
     private String eventType;
-    private Long userId;
+
     private Instant timestamp;
-    private String username;
+
+    private String source;
 }

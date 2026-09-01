@@ -1,16 +1,15 @@
 package com.user.UserService.service;
 
-import com.user.UserService.dto.UserDto;
+import com.spt.events.UserEvent;
+import com.spt.events.TaskEvent;
+import com.user.UserService.event.UserEventPublisher;
 import com.user.UserService.mapper.UserEntityMapper;
 import com.user.UserService.dto.request.UserServiceRequest;
 import com.user.UserService.dto.response.UserServiceResponse;
 import com.user.UserService.entity.UserProfile;
 import com.user.UserService.exception.UserNotFoundException;
 import com.user.UserService.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +29,27 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
+    public void createUserProfile( UserEvent event )
+    {
+        if( userRepo.existsById(event.getUserId())){
+            log.info(
+                    "User profile already exists. userId = {}", event.getUserId()
+            );
+            return;
+        }
+        UserProfile userProfile = new UserProfile();
+        userProfile.setUserId(event.getUserId());
+        userProfile.setUsername(event.getUsername());
+        userProfile.setEmail(event.getEmail());
+        userProfile.setRole(UserProfile.Role.valueOf(event.getRole()));
+        userProfile.setTaskCount(1);
+
+        userRepo.save(userProfile);
+
+        log.info("New user registered: userId = {}", userProfile.getUserId());
+    }
+
+    @Override
     public UserServiceResponse getUser(Long userId)
     {
         UserServiceResponse userServiceResponse = new UserServiceResponse();
@@ -46,11 +66,18 @@ public class UserServiceImpl implements UserService
     @Override
     public void deleteUser(Long userId)
     {
-        UserProfile userProfileEntity = userRepo.findById(userId).orElseThrow(()
-                -> new UserNotFoundException("User not found with id: " + userId));
-        userRepo.delete(userProfileEntity);
+        UserProfile userProfile = userRepo.findById(userId)
+                .orElse(null);
+
+        if (userProfile == null) {
+            log.warn(
+                    "Ignoring task count update because user no longer exists. userId={}",userId
+            );
+            return;
+        }
+        userRepo.delete(userProfile);
         /*Publishing the user event after successful deletion*/
-        userEventPublisher.publishUserDeleted(userId);
+        userEventPublisher.publishUserDeleted( userId );
         log.info("User deleted: userId = {}", userId);
     }
 
@@ -101,11 +128,15 @@ public class UserServiceImpl implements UserService
     @Override
     public void taskCountUpdate(Long userId, String updateRequest)
     {
-        UserProfile userProfile = userRepo.findById(userId)
-                .orElseThrow(() ->
-                        new UserNotFoundException(
-                                "User not found: userId = {}, userId")
-                        );
+        UserProfile userProfile = userRepo.findById(userId).orElse(null);
+
+        if (userProfile == null) {
+            log.warn(
+                    "Ignoring task count update. User does not exist. userId={}",
+                    userId
+            );
+            return;
+        }
 
         int taskCount = userProfile.getTaskCount();
         if(updateRequest.contains("Increment"))

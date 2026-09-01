@@ -9,13 +9,14 @@ import com.task.TaskService.exception.TaskAccessDeniedException;
 import com.task.TaskService.exception.TaskNotFoundException;
 import com.task.TaskService.mapper.TaskMapper;
 import com.task.TaskService.repository.TaskRepository;
+import com.task.TaskService.event.TaskEventPublisher;
+
+import com.spt.events.TaskEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -72,7 +73,6 @@ public class TaskServiceImpl implements TaskService
     @Override
     public TaskServiceResponse updateTask(Long userId, UpdateTaskRequest updateTaskRequest)
     {
-        TaskServiceResponse taskServiceResponse = new TaskServiceResponse();
         Task existingTask = getTaskForUser(userId, updateTaskRequest.getTaskId());
 
         existingTask.setTitle(updateTaskRequest.getTitle());
@@ -83,8 +83,8 @@ public class TaskServiceImpl implements TaskService
         existingTask.setLastSynced(LocalDate.now());
 
         Task updatedTask = taskRepository.save(existingTask);
-        /*Publishing the task event after successful update*/
-        publisher.publishTaskUpdated(taskMapper.convertEntityToDto(updatedTask));
+//        /*Publishing the task event after successful update*/
+//        publisher.publishTaskUpdated(taskMapper.convertEntityToDto(updatedTask));
 
         log.info("Task updated. taskId = {}, userId = {}", updateTaskRequest.getTaskId(), userId);
 
@@ -111,8 +111,6 @@ public class TaskServiceImpl implements TaskService
     @Override
     public TaskServiceResponse createDefaultTaskForUser(Long userId)
     {
-        TaskServiceResponse taskServiceResponse = new TaskServiceResponse();
-        // Create a default task for the user
         Task defaultTask = new Task();
         defaultTask.setUserId(userId);
         defaultTask.setTitle("Let's get started by adding a new task");
@@ -122,6 +120,10 @@ public class TaskServiceImpl implements TaskService
         defaultTask.setStatus(Task.Status.PENDING);
         defaultTask.setLastSynced(LocalDate.now());
         taskRepository.save(defaultTask);
+
+//        publisher.publishTaskCreated(
+//                taskMapper.convertEntityToDto(defaultTask)
+//        );
 
         log.info("Default task created. userId={}, taskId={}", userId, defaultTask.getTaskId());
 

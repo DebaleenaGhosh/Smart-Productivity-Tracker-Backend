@@ -7,12 +7,15 @@ import com.auth.AuthServer.dto.response.LoginResponse;
 import com.auth.AuthServer.dto.response.RegisteredUserResponse;
 import com.auth.AuthServer.entity.AuthUser;
 import com.auth.AuthServer.entity.BlackListedToken;
+import com.auth.AuthServer.event.UserEventPublisher;
 import com.auth.AuthServer.exception.AccessDeniedException;
 import com.auth.AuthServer.exception.BadCredentialsException;
 import com.auth.AuthServer.exception.DuplicateResourceException;
 import com.auth.AuthServer.mapper.UserEntityMapper;
 import com.auth.AuthServer.repository.AuthUserRepository;
 import com.auth.AuthServer.repository.BlackListedTokenRepository;
+import com.spt.events.UserEvent;
+import com.spt.events.EventMetadata;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -26,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -34,24 +38,28 @@ public class AuthServiceImpl implements AuthService
     private final AuthUserRepository authUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final AuthEventPublisher authEventPublisher;
     private final JwtService jwtService;
     private final UserEntityMapper mapper;
     private final BlackListedTokenRepository blacklistRepo;
     @Value("${jwt.secret}")
     private String jwtSecret;
+    private final UserEventPublisher userEventPublisher;
 
     public AuthServiceImpl(AuthUserRepository authUserRepository,
                            PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager,
-                           BlackListedTokenRepository blacklistRepo, AuthEventPublisher authEventPublisher, JwtService jwtService, UserEntityMapper mapper, BlackListedTokenRepository blacklistRepo1) {
+                           BlackListedTokenRepository blacklistRepo,
+                           JwtService jwtService,
+                           UserEntityMapper mapper,
+                           BlackListedTokenRepository blacklistRepo1,
+                           UserEventPublisher userEventPublisher) {
         this.authUserRepository = authUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
-        this.authEventPublisher = authEventPublisher;
         this.jwtService = jwtService;
         this.mapper = mapper;
         this.blacklistRepo = blacklistRepo1;
+        this.userEventPublisher = userEventPublisher;
     }
 
     @Override
@@ -79,7 +87,22 @@ public class AuthServiceImpl implements AuthService
         AuthUser authUser = authUserRepository.save(mapper.convertDtoToEntity(authUserDto));
 
         // Publish event
-        authEventPublisher.publishUserCreated(mapper.convertEntityToDto(authUser));
+        UserEvent event = UserEvent.builder()
+                .metadata(
+                        EventMetadata.builder()
+                                .eventId(UUID.randomUUID().toString())
+                                .eventType("USER_REGISTERED")
+                                .timestamp(Instant.now())
+                                .source("AUTH-SERVICE")
+                                .build()
+                )
+                .userId(authUser.getUserId())
+                .username(authUser.getUsername())
+                .email(authUser.getEmail())
+                .role(authUser.getRole())
+                .build();
+
+        userEventPublisher.publishUserRegistered(event);
 
         log.info(
                 "User registered successfully. userId = {}", authUser.getUserId()
@@ -93,8 +116,8 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public LoginResponse authenticate(LoginRequest loginRequest) {
-        LoginResponse loginResponse = new LoginResponse();
+    public LoginResponse authenticate(LoginRequest loginRequest)
+    {
         try {
             // Perform authentication
             authenticationManager.authenticate(
@@ -120,6 +143,7 @@ public class AuthServiceImpl implements AuthService
                 "User authenticated successfully. userId={}",
                 authenticatedAuthUser.getUserId()
         );
+
         // Prepare response
         return new LoginResponse(
                 token,
@@ -128,8 +152,8 @@ public class AuthServiceImpl implements AuthService
     }
 
     @Override
-    public void logout(String token) {
-
+    public void logout(String token)
+    {
         if (token == null || token.isBlank()) return;
 
         try {

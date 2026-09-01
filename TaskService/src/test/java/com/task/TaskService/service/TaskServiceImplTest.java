@@ -25,17 +25,17 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceImplTest
 {
-    @Mock
-    TaskMapper taskEntityConverter;
-
-    @Mock
-    TaskRepository taskRepository;
-
-    @Mock
-    TaskEventPublisher taskEventPublisher;
-
-    @InjectMocks
-    TaskServiceImpl taskService;
+//    @Mock
+//    TaskMapper taskEntityConverter;
+//
+//    @Mock
+//    TaskRepository taskRepository;
+//
+//    @Mock
+//    TaskEventPublisher taskEventPublisher;
+//
+//    @InjectMocks
+//    TaskServiceImpl taskService;
 
 //    @Test
 //    void testCreateTaskSuccess() {

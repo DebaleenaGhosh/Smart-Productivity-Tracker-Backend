@@ -11,7 +11,7 @@ public class UserEntityMapper {
     public UserProfile convertDtoToEntity(UserDto userDto)
     {
         UserProfile userProfile = new UserProfile();
-        userProfile.setUserId(userDto.getId());
+        userProfile.setUserId(userDto.getUserId());
         userProfile.setUsername(userDto.getUsername());
         userProfile.setEmail(userDto.getEmail());
         userProfile.setRole(UserProfile.Role.valueOf(userDto.getRole()));
