@@ -10,50 +10,38 @@ import com.spt.events.EventMetadata;
 import java.time.Instant;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class TaskEventPublisher
 {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void publishTaskCreated( TaskDto task )
     {
-        TaskEvent event = TaskEvent.builder()
-                .metadata(
-                        EventMetadata.builder()
-                                .eventId(UUID.randomUUID().toString() )
-                                .eventType("TASK_CREATED")
-                                .timestamp(Instant.now())
-                                .source("TASK-SERVICE")
-                                .build()
-                )
-                .taskId(task.getTaskId())
-                .userId(task.getUserId())
-                .build();
+        publishTaskSnapshot(task, "TASK_CREATED");
+    }
 
-        kafkaTemplate.send(
-                "task.events",
-                task.getUserId().toString(),
-                event
-        );
-
-        log.info(
-                "Published Task_Created. taskId = {}, userId = {}", event.getTaskId(), event.getUserId()
-        );
+    public void publishTaskUpdated(TaskDto task)
+    {
+        publishTaskSnapshot(task, "TASK_UPDATED");
     }
 
     public void publishTaskDeleted( Long taskId, Long userId )
     {
+        String eventId = UUID.randomUUID().toString();
         TaskEvent event = TaskEvent.builder()
                 .metadata(
                         EventMetadata.builder()
-                                .eventId(UUID.randomUUID().toString() )
+                                .eventId(eventId)
                                 .eventType("TASK_DELETED")
                                 .timestamp(Instant.now())
                                 .source("TASK-SERVICE")
                                 .build()
                 )
+                .eventType("TASK_DELETED")
+                .eventId(eventId)
+                .taskEventType("TASK_DELETED")
                 .taskId(taskId)
                 .userId(userId)
                 .build();
@@ -71,15 +59,19 @@ public class TaskEventPublisher
 
     public void publishAllTasksDeleted( Long userId )
     {
+                String eventId = UUID.randomUUID().toString();
         TaskEvent event = TaskEvent.builder()
                 .metadata(
                         EventMetadata.builder()
-                                .eventId(UUID.randomUUID().toString() )
+                                .eventId(eventId)
                                 .eventType("ALL_TASKS_DELETED")
                                 .timestamp(Instant.now())
                                 .source("TASK-SERVICE")
                                 .build()
                 )
+                .eventType("ALL_TASKS_DELETED")
+                .eventId(eventId)
+                .taskEventType("ALL_TASKS_DELETED")
                 .userId(userId)
                 .build();
 
@@ -92,5 +84,37 @@ public class TaskEventPublisher
         log.info(
                 "Published All_Tasks_Deleted. userId = {}", event.getUserId()
         );
+    }
+
+    private void publishTaskSnapshot(TaskDto task, String eventType)
+    {
+        String eventId = UUID.randomUUID().toString();
+        TaskEvent event = TaskEvent.builder()
+                .metadata(EventMetadata.builder()
+                        .eventId(eventId)
+                        .eventType(eventType)
+                        .timestamp(Instant.now())
+                        .source("TASK-SERVICE")
+                        .build())
+                .eventType(eventType)
+                .eventId(eventId)
+                .taskEventType(eventType)
+                .taskId(task.getTaskId())
+                .userId(task.getUserId())
+                .title(task.getTitle())
+                .category(task.getCategory())
+                .priority(task.getPriority())
+                .status(task.getStatus())
+                .estimatedMinutes(task.getEstimatedMinutes())
+                .actualMinutes(task.getActualMinutes())
+                .dueDate(task.getDueDate())
+                .createdAt(task.getCreatedAt())
+                .startedAt(task.getStartedAt())
+                .completedAt(task.getCompletedAt())
+                .updatedAt(task.getUpdatedAt())
+                .build();
+
+        kafkaTemplate.send("task.events", task.getUserId().toString(), event);
+        log.info("Published {}. taskId={}, userId={}", eventType, task.getTaskId(), task.getUserId());
     }
 }

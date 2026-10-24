@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -20,4 +21,11 @@ public class TaskServiceResponse
     private String status;
     private LocalDate dueDate;
     private LocalDate lastSynced;
+    private String category;
+    private Integer estimatedMinutes;
+    private Integer actualMinutes;
+    private LocalDateTime createdAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
+    private LocalDateTime updatedAt;
 }

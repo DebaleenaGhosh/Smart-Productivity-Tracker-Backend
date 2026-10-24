@@ -18,6 +18,13 @@ public class TaskMapper
                         .status(task.getStatus().name())
                         .dueDate(task.getDueDate())
                         .lastSynced(task.getLastSynced())
+                        .category(task.getCategory())
+                        .estimatedMinutes(task.getEstimatedMinutes())
+                        .actualMinutes(task.getActualMinutes())
+                        .createdAt(task.getCreatedAt())
+                        .startedAt(task.getStartedAt())
+                        .completedAt(task.getCompletedAt())
+                        .updatedAt(task.getUpdatedAt())
                         .build();
     }
 
@@ -32,6 +39,13 @@ public class TaskMapper
         taskDto.setStatus(String.valueOf(task.getStatus()));
         taskDto.setDueDate(task.getDueDate());
         taskDto.setLastSynced(task.getLastSynced());
+        taskDto.setCategory(task.getCategory());
+        taskDto.setEstimatedMinutes(task.getEstimatedMinutes());
+        taskDto.setActualMinutes(task.getActualMinutes());
+        taskDto.setCreatedAt(task.getCreatedAt());
+        taskDto.setStartedAt(task.getStartedAt());
+        taskDto.setCompletedAt(task.getCompletedAt());
+        taskDto.setUpdatedAt(task.getUpdatedAt());
         return taskDto;
     }
 
@@ -46,6 +60,13 @@ public class TaskMapper
         task.setStatus(Task.Status.valueOf(taskDto.getStatus()));
         task.setDueDate(taskDto.getDueDate());
         task.setLastSynced(taskDto.getLastSynced());
+        task.setCategory(taskDto.getCategory());
+        task.setEstimatedMinutes(taskDto.getEstimatedMinutes());
+        task.setActualMinutes(taskDto.getActualMinutes());
+        task.setCreatedAt(taskDto.getCreatedAt());
+        task.setStartedAt(taskDto.getStartedAt());
+        task.setCompletedAt(taskDto.getCompletedAt());
+        task.setUpdatedAt(taskDto.getUpdatedAt());
         return task;
     }
 }

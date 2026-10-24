@@ -18,6 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.List;
 
 @Service
@@ -42,6 +45,9 @@ public class TaskServiceImpl implements TaskService
         task.setDescription(request.getDescription());
         task.setDueDate(request.getDueDate());
         task.setPriority(request.getPriority());
+        task.setCategory(normalizeCategory(request.getCategory()));
+        task.setEstimatedMinutes(request.getEstimatedMinutes() == null ? 60 : request.getEstimatedMinutes());
+        task.setActualMinutes(0);
         task.setStatus(Task.Status.PENDING);
         task.setLastSynced(LocalDate.now());
 
@@ -79,12 +85,19 @@ public class TaskServiceImpl implements TaskService
         existingTask.setDescription(updateTaskRequest.getDescription());
         existingTask.setPriority(updateTaskRequest.getPriority());
         existingTask.setDueDate(updateTaskRequest.getDueDate());
-        existingTask.setStatus(Task.Status.valueOf(updateTaskRequest.getStatus()));
+        Task.Status previousStatus = existingTask.getStatus();
+        Task.Status nextStatus = Task.Status.valueOf(updateTaskRequest.getStatus().toUpperCase(Locale.ROOT));
+        existingTask.setCategory(normalizeCategory(updateTaskRequest.getCategory()));
+        existingTask.setEstimatedMinutes(updateTaskRequest.getEstimatedMinutes() == null
+            ? existingTask.getEstimatedMinutes() : updateTaskRequest.getEstimatedMinutes());
+        existingTask.setActualMinutes(updateTaskRequest.getActualMinutes() == null
+            ? existingTask.getActualMinutes() : updateTaskRequest.getActualMinutes());
+        updateTiming(existingTask, previousStatus, nextStatus);
+        existingTask.setStatus(nextStatus);
         existingTask.setLastSynced(LocalDate.now());
 
         Task updatedTask = taskRepository.save(existingTask);
-//        /*Publishing the task event after successful update*/
-//        publisher.publishTaskUpdated(taskMapper.convertEntityToDto(updatedTask));
+        publisher.publishTaskUpdated(taskMapper.convertEntityToDto(updatedTask));
 
         log.info("Task updated. taskId = {}, userId = {}", updateTaskRequest.getTaskId(), userId);
 
@@ -116,6 +129,9 @@ public class TaskServiceImpl implements TaskService
         defaultTask.setTitle("Let's get started by adding a new task");
         defaultTask.setDescription("This is your first task. Get started!");
         defaultTask.setPriority("Low");
+        defaultTask.setCategory("GENERAL");
+        defaultTask.setEstimatedMinutes(15);
+        defaultTask.setActualMinutes(0);
         defaultTask.setDueDate(LocalDate.now());
         defaultTask.setStatus(Task.Status.PENDING);
         defaultTask.setLastSynced(LocalDate.now());
@@ -156,6 +172,31 @@ public class TaskServiceImpl implements TaskService
         return task;
     }
 
+    private void updateTiming(Task task, Task.Status previousStatus, Task.Status nextStatus)
+    {
+        LocalDateTime now = LocalDateTime.now();
+        if (nextStatus == Task.Status.IN_PROGRESS && task.getStartedAt() == null) {
+            task.setStartedAt(now);
+        }
+        if (nextStatus == Task.Status.COMPLETED && previousStatus != Task.Status.COMPLETED) {
+            task.setCompletedAt(now);
+            if ((task.getActualMinutes() == null || task.getActualMinutes() == 0) && task.getStartedAt() != null) {
+                long elapsed = Duration.between(task.getStartedAt(), now).toMinutes();
+                task.setActualMinutes((int) Math.max(1, Math.min(elapsed, 10080)));
+            }
+        }
+        if (previousStatus == Task.Status.COMPLETED && nextStatus != Task.Status.COMPLETED) {
+            task.setCompletedAt(null);
+        }
+    }
+
+    private String normalizeCategory(String category)
+    {
+        return category == null || category.isBlank()
+                ? "GENERAL"
+                : category.trim().toUpperCase(Locale.ROOT);
+    }
+
     @Override
     @Transactional
     public void syncTasksForUser(Long userId)
@@ -167,7 +208,8 @@ public class TaskServiceImpl implements TaskService
             task.setLastSynced(LocalDate.now());
         }
         taskRepository.saveAll(userTasks);
+        userTasks.forEach(task -> publisher.publishTaskUpdated(taskMapper.convertEntityToDto(task)));
 
-        log.info("Tasks synchronized. userId = {}, taskCount = {}", userId, userTasks.size());
+        log.info("Tasks synchronized with analytics. userId = {}, taskCount = {}", userId, userTasks.size());
     }
 }

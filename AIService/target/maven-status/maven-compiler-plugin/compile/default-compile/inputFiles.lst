@@ -1,0 +1,12 @@
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\AIServiceApplication.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\controller\ProductivityController.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\dto\AnalyticsResponse.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\dto\SuggestionResponse.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\entity\Suggestion.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\entity\TaskAnalytics.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\event\TaskAnalyticsListener.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\repository\SuggestionRepository.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\repository\TaskAnalyticsRepository.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\service\AnalyticsService.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\service\GenerativeAiClient.java
+D:\Personal_Project\project\Smart-Productivity-Tracker-Backend-main\AIService\src\main\java\com\spt\ai\service\SuggestionService.java

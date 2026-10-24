@@ -1,0 +1,46 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: AI-SERVICE
+  datasource:
+    url: jdbc:postgresql://localhost:5432/SPT
+    username: postgres
+    password: manager
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: ai-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.spt.events"
+
+# Any OpenAI-compatible chat-completions API can be used. Without a key,
+# the service still creates useful rule-based suggestions from real metrics.
+ai:
+  provider:
+    enabled: "true"
+    endpoint: "http://localhost:11434/v1/chat/completions"
+    api-key: "ollama"
+    model: "llama3.1:latest"
+
+productivity:
+  suggestions:
+    max-history: 20
+
+eureka:
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
