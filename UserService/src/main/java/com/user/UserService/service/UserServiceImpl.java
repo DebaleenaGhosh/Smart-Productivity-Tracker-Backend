@@ -9,6 +9,7 @@ import com.user.UserService.dto.response.UserServiceResponse;
 import com.user.UserService.entity.UserProfile;
 import com.user.UserService.exception.UserNotFoundException;
 import com.user.UserService.repository.UserRepository;
+import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

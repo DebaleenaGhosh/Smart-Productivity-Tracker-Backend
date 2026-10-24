@@ -1,6 +1,8 @@
 package com.task.TaskService.dto.request;
 
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,4 +29,11 @@ public class CreateTaskRequest
 
     @NotBlank(message = "Priority is required")
     private String priority;
+
+    @Size(max = 60, message = "Category cannot exceed 60 characters")
+    private String category;
+
+    @Min(value = 1, message = "Estimated time must be at least one minute")
+    @Max(value = 10080, message = "Estimated time cannot exceed one week")
+    private Integer estimatedMinutes;
 }

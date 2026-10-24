@@ -55,9 +55,9 @@ public class UserEventListener {
          */
         if (processedEventRepository.existsById(event.getMetadata().getEventId())) {
 
-            log.info(
-                    "USER_DELETED event already processed: {}",event.getMetadata().getEventId()
-            );
+//            log.info(
+//                    "USER_DELETED event already processed: {}",event.getMetadata().getEventId()
+//            );
 
             return;
         }
@@ -78,8 +78,8 @@ public class UserEventListener {
                 )
         );
 
-        log.info(
-                "USER_DELETED successfully processed for user: {}",event.getUserId()
-        );
+//        log.info(
+//                "USER_DELETED successfully processed for user: {}",event.getUserId()
+//        );
     }
 }

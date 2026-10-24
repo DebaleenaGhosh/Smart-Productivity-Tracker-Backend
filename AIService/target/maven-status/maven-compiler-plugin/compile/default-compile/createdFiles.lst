@@ -1,0 +1,15 @@
+com\spt\ai\service\SuggestionService.class
+com\spt\ai\AIServiceApplication.class
+com\spt\ai\dto\AnalyticsResponse$TimeSeriesPoint.class
+com\spt\ai\repository\SuggestionRepository.class
+com\spt\ai\entity\Suggestion$SuggestionBuilder.class
+com\spt\ai\controller\ProductivityController.class
+com\spt\ai\entity\TaskAnalytics.class
+com\spt\ai\dto\AnalyticsResponse.class
+com\spt\ai\repository\TaskAnalyticsRepository.class
+com\spt\ai\event\TaskAnalyticsListener.class
+com\spt\ai\service\GenerativeAiClient.class
+com\spt\ai\service\AnalyticsService.class
+com\spt\ai\entity\Suggestion.class
+com\spt\ai\dto\SuggestionResponse.class
+com\spt\ai\entity\TaskAnalytics$TaskAnalyticsBuilder.class

@@ -1,6 +1,7 @@
 package com.task.TaskService.dto.request;
 
-import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -32,6 +33,16 @@ public class UpdateTaskRequest
     private String status;
 
     @NotNull(message = "Due date is required")
-    @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
+
+    @Size(max = 60, message = "Category cannot exceed 60 characters")
+    private String category;
+
+    @Min(value = 1, message = "Estimated time must be at least one minute")
+    @Max(value = 10080, message = "Estimated time cannot exceed one week")
+    private Integer estimatedMinutes;
+
+    @Min(value = 0, message = "Actual time cannot be negative")
+    @Max(value = 10080, message = "Actual time cannot exceed one week")
+    private Integer actualMinutes;
 }

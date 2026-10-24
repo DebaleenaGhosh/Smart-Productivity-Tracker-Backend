@@ -53,9 +53,19 @@ public class TaskController
         return ResponseEntity.ok(task);
     }
 
-    @PutMapping("/{taskId}")
-    public ResponseEntity<TaskServiceResponse> updateTask(@RequestHeader("X-User-Id") Long userId, @RequestBody UpdateTaskRequest updateTaskRequest)
+    @PostMapping("/analytics/sync")
+    public ResponseEntity<Void> syncAnalytics(@RequestHeader("X-User-Id") Long userId)
     {
+        taskService.syncTasksForUser(userId);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PutMapping("/{taskId}")
+    public ResponseEntity<TaskServiceResponse> updateTask(@RequestHeader("X-User-Id") Long userId,
+                                                          @PathVariable Long taskId,
+                                                          @Valid @RequestBody UpdateTaskRequest updateTaskRequest)
+    {
+        updateTaskRequest.setTaskId(taskId);
         TaskServiceResponse updatedTask = taskService.updateTask(userId, updateTaskRequest);
         return ResponseEntity.ok(updatedTask);
     }
